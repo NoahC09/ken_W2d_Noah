@@ -197,3 +197,5 @@ while is_game_running:
     pygame.time.Clock().tick(60)                            # Setzt die Anzahl Frames per Second auf 60
 
 pygame.quit()
+
+#Test änderung
