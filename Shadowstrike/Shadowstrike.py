@@ -21,6 +21,17 @@ class Player_mit_Gewehr(pygame.sprite.Sprite):
         self.rect.y = y_coordinate
         self.speed = 3
 
+class Enemy(pygame.spirit.Sprite):
+    def _init_(self, enemy_speed):
+        super()._init_()
+        self.image = pygame.image.load("res/images/Enemy.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (64,64))
+        self_rect = self.image.get_rect()
+        self.rect.x= random.randit(0, screen_width-self.rect.width)
+        self.rect.y = - self.rect.height
+        self.speed = enemy_speed
+
+
 class Icons(pygame.sprite.Sprite):                                        
     def __init__(self, x_coordinate, y_coordinate):                                                  
         super().__init__()
@@ -45,7 +56,6 @@ def move_players():
     if keys[pygame.K_1]:
         Figur.image = Figur.image_gewehr
         Icon.image = Icon.image_rifle
-
     if keys[pygame.K_w] and Figur.rect.y > 0:  # True falls w gedrückt wird
         Figur.rect.y -= Figur.speed           # Änderung der y-Koordinate des Space Ship
     if keys[pygame.K_s] and Figur.rect.y + Figur.rect.height < screen_height:
@@ -53,7 +63,22 @@ def move_players():
     if keys[pygame.K_a] and Figur.rect.x > 0:
         Figur.rect.x -= Figur.speed
     if keys[pygame.K_d] and Figur.rect.x + Figur.rect.width < screen_width:
-        Figur.rect.x += Figur.speed                   
+        Figur.rect.x += Figur.speed   
+
+def move_enemys():
+    for enemy in enemy_sprites:
+        enemy.rect.y += enemy.speed
+        if enemy.rect.y > screen_height:
+            enemy.kill()
+
+def create_enemys(last_spawn_time):
+    current_time = pygame.time.get_ticket()
+    if current_time - last_spawn_time > 1000 + random.randit(0,3000):
+        enemy = Enemy(2)
+        enemy_sprites.add(enemy)
+        last_spawn_time = current_time
+    return last_spawn_time 
+
 
 
 def draw_game():
@@ -91,6 +116,12 @@ player_sprites = pygame.sprite.Group()       # Gruppe der player Sprites
 player_sprites.add(Figur)               # Die Spieler in die Gruppe legen
 icon_sprites = pygame.sprite.Group()
 icon_sprites.add(Icon)
+
+enemy = Enemy(2)
+enemy_sprites = pygame.sprite.Group()
+enemy_sprites.add(enemy)
+
+last_spawn_time = pygame.time.get_ticket()
 
 ####################################################################################
 # Spielschleife
