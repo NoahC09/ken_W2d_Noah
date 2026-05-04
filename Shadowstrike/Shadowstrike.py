@@ -21,16 +21,33 @@ class Player_mit_Gewehr(pygame.sprite.Sprite):
         self.rect.y = y_coordinate
         self.speed = 3
 
-class Enemy(pygame.spirit.Sprite):
-    def _init_(self, enemy_speed):
-        super()._init_()
-        self.image = pygame.image.load("res/images/Enemy.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (64,64))
-        self_rect = self.image.get_rect()
-        self.rect.x= random.randit(0, screen_width-self.rect.width)
-        self.rect.y = - self.rect.height
-        self.speed = enemy_speed
+import pygame
+import random
 
+class Enemy(pygame.sprite.Sprite):                                        
+    def __init__(self, enemy_speed):                                                  
+        super().__init__()                                                                                                   
+        self.image = pygame.image.load("res/images/Enemy.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (64, 64))
+        self.rect = self.image.get_rect()
+        i = random.randint(1, 4)
+
+        if i == 1:
+            self.rect.x = random.randint(0, screen_width - self.rect.width)
+            self.rect.y = -self.rect.height
+        
+        elif i == 2: 
+            self.rect.x = random.randint(0, screen_width - self.rect.width)
+            self.rect.y = screen_height
+        
+        elif i == 3:
+            self.rect.x = -self.rect.width
+            self.rect.y = random.randint(0, screen_height - self.rect.height)
+
+        elif i == 4:
+            self.rect.x = screen_width
+            self.rect.y = random.randint(0, screen_height - self.rect.height)
+        self.speed = enemy_speed
 
 class Icons(pygame.sprite.Sprite):                                        
     def __init__(self, x_coordinate, y_coordinate):                                                  
@@ -63,7 +80,7 @@ def move_players():
     if keys[pygame.K_a] and Figur.rect.x > 0:
         Figur.rect.x -= Figur.speed
     if keys[pygame.K_d] and Figur.rect.x + Figur.rect.width < screen_width:
-        Figur.rect.x += Figur.speed   
+        Figur.rect.x += Figur.speed                   
 
 def move_enemys():
     for enemy in enemy_sprites:
@@ -72,20 +89,19 @@ def move_enemys():
             enemy.kill()
 
 def create_enemys(last_spawn_time):
-    current_time = pygame.time.get_ticket()
-    if current_time - last_spawn_time > 1000 + random.randit(0,3000):
+    current_time = pygame.time.get_ticks()
+    if current_time - last_spawn_time > 1000 + random.randint(0, 0):
         enemy = Enemy(2)
         enemy_sprites.add(enemy)
         last_spawn_time = current_time
-    return last_spawn_time 
-
-
+    return last_spawn_time
 
 def draw_game():
     screen.blit(background_image_game, (0,0))
     player_sprites.draw(screen)
     icon_sprites.draw(screen)
-
+    enemy_sprites.draw(screen)
+    
 ####################################################################################
 # Globale variablen initialisieren
 # ----------------------------------------------------------------------------------
@@ -121,7 +137,7 @@ enemy = Enemy(2)
 enemy_sprites = pygame.sprite.Group()
 enemy_sprites.add(enemy)
 
-last_spawn_time = pygame.time.get_ticket()
+last_spawn_time = pygame.time.get_ticks()
 
 ####################################################################################
 # Spielschleife
@@ -135,9 +151,11 @@ while is_game_running:
    
     if game_status == "game":
         move_players()
+        last_spawn_time = create_enemys(last_spawn_time)
         draw_game()
+        move_enemys()
 
     pygame.display.update()                                 # Fenster updaten
-    pygame.time.Clock().tick(60)                            # Setzt die Anzahl Frames per Second auf 60
+    clock.tick(60)                                          # Setzt die Anzahl Frames per Second auf 60
 
 pygame.quit()
