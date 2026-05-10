@@ -44,7 +44,13 @@ class Enemy(pygame.sprite.Sprite):
         elif i == 4:
             self.rect.x = screen_width
             self.rect.y = random.randint(0, screen_height - self.rect.height)
+        
+        self.pos_x = float(self.rect.x)
+        self.pos_y = float(self.rect.y)
+
         self.speed = enemy_speed
+
+
  
 class Icons(pygame.sprite.Sprite):                                        
     def __init__(self, x_coordinate, y_coordinate):                                                  
@@ -109,12 +115,20 @@ def check_collisions(current_status):
         if enemy.rect.colliderect(hitbox):
             return "game_over"     
     return current_status
- 
+
 def move_enemys():
     for enemy in enemy_sprites:
-        enemy.rect.y += enemy.speed
-        if enemy.rect.y > screen_height:
-            enemy.kill()
+        diffx = Figur.rect.centerx - enemy.rect.centerx
+        diffy = Figur.rect.centery - enemy.rect.centery
+        distanz= math.sqrt(diffx**2 + diffy**2)
+
+        if distanz != 0:
+            enemy.pos_x += (diffx / distanz) * enemy.speed
+            enemy.pos_y += (diffy / distanz) * enemy.speed
+            enemy.rect.centerx = int(enemy.pos_x)
+            enemy.rect.centery = int(enemy.pos_y)
+ 
+
  
 def create_enemys(last_spawn_time):
     current_time = pygame.time.get_ticks()
