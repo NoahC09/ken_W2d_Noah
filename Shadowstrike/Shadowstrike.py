@@ -51,6 +51,8 @@ class Enemy(pygame.sprite.Sprite):
         self.pos_y = float(self.rect.y)
         
         self.speed = enemy_speed
+
+
  
 class Icons(pygame.sprite.Sprite):                                        
     def __init__(self, x_coordinate, y_coordinate):                                                  
