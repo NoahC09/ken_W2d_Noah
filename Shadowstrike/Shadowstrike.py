@@ -23,6 +23,8 @@ class Player_mit_Gewehr(pygame.sprite.Sprite):
         self.speed = 5
         self.angle = 0  # 0° = schaut nach rechts
         self.rotation_speed = 3
+        self.last_shot_time = 0
+        self.aktuelle_waffe = "gewehr"
 
 class Enemy(pygame.sprite.Sprite):                                        
     def __init__(self, enemy_speed):                                                  
@@ -44,6 +46,10 @@ class Enemy(pygame.sprite.Sprite):
         elif i == 4:
             self.rect.x = screen_width
             self.rect.y = random.randint(0, screen_height - self.rect.height)
+        
+        self.pos_x = float(self.rect.x)
+        self.pos_y = float(self.rect.y)
+        
         self.speed = enemy_speed
  
 class Icons(pygame.sprite.Sprite):                                        
@@ -57,13 +63,38 @@ class Icons(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x_coordinate
         self.rect.y = y_coordinate
- 
+
+class Projectile(pygame.sprite.Sprite):
+    def __init__(self, x, y, angle):
+        super().__init__()
+        load_projectile_image = pygame.image.load("res/images/projectile.png").convert_alpha()
+        scaled_image = pygame.transform.scale(load_projectile_image, (12, 36))
+        drehen_image = pygame.transform.rotate(scaled_image, 90)
+        self.image = pygame.transform.rotate(drehen_image, angle)
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed = 15
+        rad = math.radians(angle)
+        self.dir_x = math.cos(rad)
+        self.dir_y = -math.sin(rad)
+        self.pos_x = float(self.rect.centerx)
+        self.pos_y = float(self.rect.centery)
+
+    def update(self):
+        self.pos_x += self.dir_x * self.speed
+        self.pos_y += self.dir_y * self.speed
+        self.rect.centerx = int(self.pos_x)
+        self.rect.centery = int(self.pos_y)
+        if self.rect.x < 0 or self.rect.x > screen_width or self.rect.y < 0 or self.rect.y > screen_height:
+            self.kill()
+
+        
 ####################################################################################
 # Funktionsdefinitionen
 # ----------------------------------------------------------------------------------
  
 def move_players():
     keys = pygame.key.get_pressed()
+    current_time = pygame.time.get_ticks()
  
     # Waffenwechsel
     if keys[pygame.K_2]:
@@ -96,11 +127,33 @@ def move_players():
         if 0 <= new_x <= screen_width and 0 <= new_y <= screen_height:
             Figur.rect.centerx = int(new_x)
             Figur.rect.centery = int(new_y)
- 
+
+    # Schießen mit Leertaste
+    if keys[pygame.K_SPACE] and current_time - Figur.last_shot_time > 250:
+            projectile = Projectile(Figur.rect.centerx, Figur.rect.centery, Figur.angle)
+            projectile_sprites.add(projectile)
+            Figur.last_shot_time = current_time
+            
     # Rotation anwenden
     center = Figur.rect.center
     Figur.image = pygame.transform.rotate(Figur.base_image, Figur.angle)
     Figur.rect = Figur.image.get_rect(center=center)
+
+def check_projectile_collisions():
+    for projectile in projectile_sprites:
+        for enemy in enemy_sprites:
+            if enemy.rect.colliderect(projectile.rect):
+                enemy.kill()     
+                projectile.kill() 
+                break
+
+
+def check_player_collisions():
+    for projectile in projectile_sprites:
+        for enemy in enemy_sprites:
+            if enemy.rect.colliderect(projectile.rect):
+                enemy.kill
+
 
 def check_collisions(current_status):
     # Verkleinerte Hitbox für faireres Game Over
@@ -109,26 +162,40 @@ def check_collisions(current_status):
         if enemy.rect.colliderect(hitbox):
             return "game_over"     
     return current_status
+
  
 def move_enemys():
     for enemy in enemy_sprites:
+        diffx = Figur.rect.centerx - enemy.rect.centerx
+        diffy = Figur.rect.centery - enemy.rect.centery
+        distanz = math.sqrt(diffx**2 + diffy**2)
+
+        if distanz != 0:
+            enemy.pos_x += (diffx / distanz) * enemy.speed
+            enemy.pos_y += (diffy / distanz) * enemy.speed
+            enemy.rect.centerx = int(enemy.pos_x)
+            enemy.rect.centery = int(enemy.pos_y)
+
         enemy.rect.y += enemy.speed
         if enemy.rect.y > screen_height:
             enemy.kill()
+
  
 def create_enemys(last_spawn_time):
     current_time = pygame.time.get_ticks()
-    if current_time - last_spawn_time > 1000:
+    if current_time - last_spawn_time > 1500:
         enemy_new = Enemy(2)
         enemy_sprites.add(enemy_new)
         last_spawn_time = current_time
     return last_spawn_time
- 
+
+
 def draw_game():
     screen.blit(background_image_game, (0, 0))
     player_sprites.draw(screen)
     icon_sprites.draw(screen)
     enemy_sprites.draw(screen)
+    projectile_sprites.draw(screen)
 
 def draw_game_over(): 
     screen.fill((0,0,0))
@@ -164,6 +231,7 @@ icon_sprites = pygame.sprite.Group()
 icon_sprites.add(Icon)
  
 enemy_sprites = pygame.sprite.Group()
+projectile_sprites = pygame.sprite.Group()
 last_spawn_time = pygame.time.get_ticks()
  
 ####################################################################################
@@ -180,7 +248,9 @@ while is_game_running:
         move_players()
         last_spawn_time = create_enemys(last_spawn_time)
         move_enemys()
-        game_status = check_collisions(game_status)
+        projectile_sprites.update()
+        check_projectile_collisions() 
+        game_status = check_collisions(game_status) 
         draw_game()
     
     elif game_status == "game_over":
