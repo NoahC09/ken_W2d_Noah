@@ -24,7 +24,7 @@ class Player_mit_Gewehr(pygame.sprite.Sprite):
         self.angle = 0  
         self.rotation_speed = 3
         self.last_shot_time = 0
-        self.aktuelle_waffe = "gewehr"  # Startwaffe
+        self.aktuelle_waffe = "gewehr"  
 
 class Enemy(pygame.sprite.Sprite):                                        
     def __init__(self, enemy_speed):                                                  
@@ -135,7 +135,7 @@ def move_players():
     keys = pygame.key.get_pressed()
     current_time = pygame.time.get_ticks()
  
-    # Waffenwechsel (JETZT MIT KORREKTER VARIABLEN-ZUWEISUNG)
+    
     if keys[pygame.K_2]:
         Figur.base_image = Figur.image_granate
         Icon.image = Icon.image_grenade
@@ -147,13 +147,13 @@ def move_players():
         Figur.aktuelle_waffe = "gewehr"
         sound_switch.play()
  
-    # Rotation
+    
     if keys[pygame.K_d]:
         Figur.angle -= Figur.rotation_speed
     if keys[pygame.K_a]:
         Figur.angle += Figur.rotation_speed
  
-    # Bewegungsrichtung berechnen
+    
     rad = math.radians(Figur.angle)
     dir_x = math.cos(rad)
     dir_y = -math.sin(rad)
@@ -171,14 +171,14 @@ def move_players():
             Figur.rect.centerx = int(new_x)
             Figur.rect.centery = int(new_y)
 
-    # Schießen mit Leertaste
+    
     if keys[pygame.K_SPACE] and current_time - Figur.last_shot_time > 430:
             projectile = Projectile(Figur.rect.centerx, Figur.rect.centery, Figur.angle)
             projectile_sprites.add(projectile)
             sound_schuss.play()
             Figur.last_shot_time = current_time
             
-    # Rotation anwenden
+    
     center = Figur.rect.center
     Figur.image = pygame.transform.rotate(Figur.base_image, Figur.angle)
     Figur.rect = Figur.image.get_rect(center=center)
@@ -314,7 +314,7 @@ icon_sprites.add(Icon)
  
 enemy_sprites = pygame.sprite.Group()
 projectile_sprites = pygame.sprite.Group()
-explosion_sprites = pygame.sprite.Group() # Gruppe ist nun da
+explosion_sprites = pygame.sprite.Group() 
 last_spawn_time = pygame.time.get_ticks()
  
 sound_schuss = pygame.mixer.Sound("res/sounds/schuss.wav")
