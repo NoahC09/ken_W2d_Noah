@@ -16,7 +16,7 @@ class SpaceShip(pygame.sprite.Sprite):
         self.rect   = self.image.get_rect()                                     # Umrechteck bestimmen
         self.rect.x = x_coordinate                                              # x-Startpunkt
         self.rect.y = y_coordinate                                              # y-Startpunkt
-        self.speed  = 2                                 
+        self.speed  = 8                               
         self.lives = 3
 
 class Ufo(pygame.sprite.Sprite):                                        
@@ -72,7 +72,7 @@ def move_players():
     if keys[pygame.K_s] and space_ship.rect.y + space_ship.rect.height < screen_height:
         space_ship.rect.y += space_ship.speed
     if keys[pygame.K_a] and space_ship.rect.x > 0:
-        space_ship.rect.x -= space_ship.speed
+        space_ship.rect.x -= space_ship.speedds
     if keys[pygame.K_d] and space_ship.rect.x + space_ship.rect.width < screen_width:
         space_ship.rect.x += space_ship.speed                   
     if keys[pygame.K_UP]and space_ship2.rect.y > 0:                                 

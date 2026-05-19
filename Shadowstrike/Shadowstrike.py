@@ -24,7 +24,7 @@ class Player_mit_Gewehr(pygame.sprite.Sprite):
         self.angle = 0  # 0° = schaut nach rechts
         self.rotation_speed = 3
         self.last_shot_time = 0
-        self.aktuelle_waffe = "gewehr"
+        self.aktuelle_waffe = "gewehr" # Startwaffe
 
 class Enemy(pygame.sprite.Sprite):                                        
     def __init__(self, enemy_speed):                                                  
@@ -49,7 +49,6 @@ class Enemy(pygame.sprite.Sprite):
         
         self.pos_x = float(self.rect.x)
         self.pos_y = float(self.rect.y)
-        
         self.speed = enemy_speed
 
 
@@ -69,12 +68,24 @@ class Icons(pygame.sprite.Sprite):
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, angle):
         super().__init__()
-        load_projectile_image = pygame.image.load("res/images/projectile.png").convert_alpha()
-        scaled_image = pygame.transform.scale(load_projectile_image, (12, 36))
-        drehen_image = pygame.transform.rotate(scaled_image, 90)
-        self.image = pygame.transform.rotate(drehen_image, angle)
-        self.rect = self.image.get_rect(center=(x, y))
-        self.speed = 15
+        self.art = Figur.aktuelle_waffe
+
+        if self.art == "gewehr":
+
+                load_projectile_image = pygame.image.load("res/images/projectile.png").convert_alpha()
+                scaled_image = pygame.transform.scale(load_projectile_image, (12, 36))
+                drehen_image = pygame.transform.rotate(scaled_image, 90)
+                self.image = pygame.transform.rotate(drehen_image, angle)
+                self.speed = 15
+    
+        elif self.art == "granate":
+                load_projectile_image = pygame.image.load("res/images/projectile.png").convert_alpha()
+                scaled_image = pygame.transform.scale(load_projectile_image, (12, 8))
+                self.image = pygame.transform.rotate(scaled_image, angle)
+                self.speed = 7
+                
+
+        self.rect = self.image.get_rect(center=(x,y)) 
         rad = math.radians(angle)
         self.dir_x = math.cos(rad)
         self.dir_y = -math.sin(rad)
@@ -89,6 +100,37 @@ class Projectile(pygame.sprite.Sprite):
         if self.rect.x < 0 or self.rect.x > screen_width or self.rect.y < 0 or self.rect.y > screen_height:
             self.kill()
 
+
+class Explosion(pygame.sprite.Sprite):
+    def _init_ (self,x,y):
+        super()._init_()
+        self.bilder = [
+            pygame.transform.scale(pygame.image.load("res/images/frame_1.png").convert_alpha(), (128, 128)),
+            pygame.transform.scale(pygame.image.load("res/images/frame_2.png").convert_alpha(), (128, 128)),
+            pygame.transform.scale(pygame.image.load("res/images/frame_3.png").convert_alpha(), (128, 128)),
+            pygame.transform.scale(pygame.image.load("res/images/frame_4.png").convert_alpha(), (128, 128)),
+            pygame.transform.scale(pygame.image.load("res/images/frame_5.png").convert_alpha(), (128, 128)),
+            pygame.transform.scale(pygame.image.load("res/images/frame_6.png").convert_alpha(), (128, 128)),
+        ]
+        self.aktueller_frame = 0
+        self.image = self.bilder[self.aktueller_frame]
+        self.rect = self.image.get_rect(center=(x,y))
+        self.animation_speed = 3
+        self.timer = 0
+
+    def update(self):
+        self.timer += 1
+        if self.timer >= self.animation_speed:
+            self.timer = 0
+            self.aktueller_frame += 1
+
+            if self.aktueller_frame >= len(self.bilder):
+                self.kill()
+            else:
+                center = self.bilder[self.akteuller_frame]
+                self.image = self.bilder[self.aktuellerg_frame]
+                self.rect = self.image.get_rect(center= center)
+
         
 ####################################################################################
 # Funktionsdefinitionen
@@ -102,9 +144,11 @@ def move_players():
     if keys[pygame.K_2]:
         Figur.base_image = Figur.image_granate
         Icon.image = Icon.image_grenade
+        Figur.aktuelle_waffe = "granate"
     if keys[pygame.K_1]:
         Figur.base_image = Figur.image_gewehr
         Icon.image = Icon.image_rifle
+        Figur.aktulle_waffe = "gewehr"
  
     # Rotation
     if keys[pygame.K_d]:
@@ -143,18 +187,27 @@ def move_players():
 
 def check_projectile_collisions():
     for projectile in projectile_sprites:
-        for enemy in enemy_sprites:
-            if enemy.rect.colliderect(projectile.rect):
-                enemy.kill()     
-                projectile.kill() 
-                break
+        getroffene_gegner = pygame.sprite.spritecollide(projectile, enemy_sprites, False )
 
+        if getroffene_gegner:
+            if projectile.art == "granate":
+                pos_x = projectile.rect.centerx
+                pos_y= projectile.rect.centery
+                projectile.kill()
 
-def check_player_collisions():
-    for projectile in projectile_sprites:
-        for enemy in enemy_sprites:
-            if enemy.rect.colliderect(projectile.rect):
-                enemy.kill
+                booom = Explosion(pos_x, pos_y)
+                exolosion_sprites.add(booom)
+
+                for enemy in enemy_sprites:
+                    if enemy.rect.coliderect(boom.rect):
+                        enemy.kill()
+
+            else:
+                for enemy in getroffene_gegner:
+                    enemy.kill()
+                    projectile.kill()
+            break
+
 
 
 def check_collisions(current_status):
@@ -234,6 +287,7 @@ icon_sprites.add(Icon)
  
 enemy_sprites = pygame.sprite.Group()
 projectile_sprites = pygame.sprite.Group()
+exolosion_sprites = pygame.sprite.Group()
 last_spawn_time = pygame.time.get_ticks()
  
 ####################################################################################
@@ -251,6 +305,7 @@ while is_game_running:
         last_spawn_time = create_enemys(last_spawn_time)
         move_enemys()
         projectile_sprites.update()
+        exolosion_sprites.update()
         check_projectile_collisions() 
         game_status = check_collisions(game_status) 
         draw_game()
