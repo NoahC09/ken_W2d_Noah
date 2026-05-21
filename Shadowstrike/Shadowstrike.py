@@ -294,7 +294,7 @@ clock = pygame.time.Clock()
 my_font_game_over = pygame.font.SysFont('Comic Sans MS', 96)
 my_font_restart = pygame.font.SysFont('Comic Sans MS', 30)
 game_over_text = "Game Over"
-restart_text = "Drücke die Leertaste um Neu zu Starten"
+restart_text = "Drücke die Leertaste um neu zu starten"
 text_game_over = my_font_game_over.render(game_over_text, True, (255, 165, 0))
 text_restart = my_font_restart.render(restart_text, True, (255, 165, 0))
  
